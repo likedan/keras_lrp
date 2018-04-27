@@ -5,6 +5,8 @@ from lrp.avgpool import AvgPool
 from lrp.maxpool import MaxPool
 from lrp.globalavgpool import GlobalAvgPool
 from lrp.concatenation import Concatenation
+from lrp.batchnormalization import BatchNormalization
+import numpy as np
 
 class LRPModel(tf.keras.Model):
 
@@ -33,11 +35,9 @@ class LRPModel(tf.keras.Model):
                     from_layer_index = self.source_model.layers.index(from_layer)
                     # print(layer_R[layer.name].shape, output[from_layer_index].shape)
                     layer_R[from_layer.name] = r_layer.lrp(layer_R[layer.name], output[from_layer_index])
-                    print(layer.name, from_layer.name, layer_R[from_layer.name].shape)
 
             elif len(from_layers) == 1:
                 from_layer = from_layers[0]
-                print(layer.name, from_layer.name)
                 from_layer_index = self.source_model.layers.index(from_layer)
                 layer_index = self.source_model.layers.index(layer)
                 if type(layer) is tf.keras.layers.Conv2D:
@@ -50,13 +50,17 @@ class LRPModel(tf.keras.Model):
                     r_layer = MaxPool(layer, output[from_layer_index], output[layer_index])
                 elif type(layer) is tf.keras.layers.GlobalAveragePooling2D:
                     r_layer = GlobalAvgPool(layer, output[from_layer_index])
+                # elif type(layer) is tf.keras.layers.BatchNormalization:
+                #     r_layer = BatchNormalization(layer, output[from_layer_index])
                 else:
+                    print("skip", layer.name)
                     layer_R[from_layer.name] = layer_R[layer.name]
                     continue
                 layer_R[from_layer.name] = r_layer._simple_lrp(layer_R[layer.name])
-                print(layer.name, from_layer.name, layer_R[from_layer.name].shape)
             else:
                 #done
                 break
+
+            print(layer.name, from_layer.name, np.average(layer_R[layer.name]))
 
         return layer_R[self.source_model.layers[0].name]

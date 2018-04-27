@@ -25,45 +25,6 @@ class MaxPool:
         self.stride = layer.strides
 
 
-    # def forward(self,X):
-    #     '''
-    #     Realizes the forward pass of an input through the max pooling layer.
-    #
-    #     Parameters
-    #     ----------
-    #     X : numpy.ndarray
-    #         a network input, shaped (N,H,W,D), with
-    #         N = batch size
-    #         H, W, D = input size in heigth, width, depth
-    #
-    #     Returns
-    #     -------
-    #     Y : numpy.ndarray
-    #         the max-pooled outputs, reduced in size due to given stride and pooling size
-    #     '''
-    #
-    #     self.X = X
-    #     N,H,W,D = X.shape
-    #
-    #     hpool,   wpool   = self.pool
-    #     hstride, wstride = self.stride
-    #
-    #     #assume the given pooling and stride parameters are carefully chosen.
-    #     Hout = (H - hpool) / hstride + 1
-    #     Wout = (W - wpool) / wstride + 1
-    #
-    #     #initialize pooled output
-    #     self.Y = np.zeros((N,Hout,Wout,D))
-    #
-    #     for i in range(Hout):
-    #         for j in range(Wout):
-    #             self.Y[:,i,j,:] = X[:, i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ].max(axis=(1,2))
-    #     return self.Y
-    #
-
-
-
-
     def _simple_lrp(self,R):
         N,H,W,D = self.X.shape
 
@@ -76,6 +37,7 @@ class MaxPool:
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
+        print(Hout,Wout,self.pool,self.stride)
         for i in range(Hout):
             for j in range(Wout):
                 Z = self.Y[:,i:i+1,j:j+1,:] == self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ]

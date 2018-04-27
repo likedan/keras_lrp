@@ -10,6 +10,7 @@ from PIL import Image
 from keras.models import load_model
 from tensorflow.python.keras.models import load_model
 from lrp.LRPModel import LRPModel
+from keras.applications import *
 
 img_size = 512
 
@@ -37,16 +38,17 @@ def classify_model(class_name, model_path):
 
     model = load_model(os.path.join(model_path, model_file_name))
     model.load_weights(os.path.join(model_path, weight_file_name))
-
+    # input_tensor = Input(shape=self.img_shape_full)
+    # model = vgg16.VGG16(input_tensor=input_tensor, weights='imagenet', include_top=False
     model = LRPModel(model)
 
     if replace == False and os.path.exists(os.path.join(model_path, 'test_results_formatted.csv')):
         return
 
-    tests = []
     rows = []
     with open('rank/Tests/question.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
+        tests = []
         for row in reader:
             if row[1] != class_name:
                 continue
@@ -60,50 +62,13 @@ def classify_model(class_name, model_path):
             tests.append(img_array/ 255)
 
             lrp_result = model.perform_lrp(np.array([img_array / 255]))
-            print(lrp_result.shape)
             np.save(row[0].replace("/", "-"), lrp_result[0, :, :, :])
-            plt.imshow(lrp_result[0, :, :, :], cmap='jet')
+
+            plt.imshow(np.log(np.log(np.abs(lrp_result[0, :, :, :]))), cmap='jet')
             plt.show()
 
             rows.append(row)
-    results = model.predict(np.array(tests), batch_size=16, verbose=0, steps=None)
-
-    with open(os.path.join(model_path, 'test_results_formatted.csv'), 'w') as wfile:
-        writer = csv.writer(wfile, delimiter=',')
-
-        for index in range(len(rows)):
-            result = results[index]
-            ans = ""
-            for r in result:
-                ans += str(int(r * 10000) / 10000)
-                ans += ";"
-            ans = ans[:-1]
-
-            row = rows[index]
-            row[-1] = ans
-            writer.writerow(row)
-
-    with open(os.path.join(model_path, 'test_results_raw.csv'), 'w') as wfile:
-        writer = csv.writer(wfile, delimiter=',')
-
-        for index in range(len(rows)):
-            result = results[index]
-            row = rows[index]
-            del row[-1]
-            for r in result:
-                row.append(r)
-            writer.writerow(row)
 
     print("Finished Classifying: ", model_path)
 
 classify_model("neckline_design_labels", "InceptionV3-85")
-
-# classes = os.listdir("models")
-# for classe in classes:
-#     if classe == ".DS_Store":
-#         continue
-#     models = os.listdir(os.path.join("models", classe))
-#     for model in models:
-#         if model == ".DS_Store":
-#             continue
-#         classify_model(classe, model)

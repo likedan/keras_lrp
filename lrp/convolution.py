@@ -46,7 +46,6 @@ class Convolution:
 
         if self.padding == "valid":
             Rx = np.zeros_like(self.X, dtype=np.float)
-            print(self.stride, R.shape, self.X.shape)
             for i in range(Hout):
                 for j in range(Wout):
                     Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
@@ -54,11 +53,10 @@ class Convolution:
                     Zs += 1e-12*((Zs >= 0)*2 - 1.) # add a weak numerical stabilizer to cushion division by zero
                     Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += ((Z/Zs) * R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
             return Rx
-        else:
+        elif self.padding == "same":
             shape = (self.X.shape[0], self.X.shape[1] + hf - 1, self.X.shape[2] + wf - 1, self.X.shape[3])
             Rx = np.zeros(shape)
             new_X = np.zeros(shape)
-            print(self.stride, new_X.shape, Rx.shape, self.X.shape, R.shape)
             new_X[:, int(hstride/2):Hout+int(hstride/2) , int(wstride/2):Wout+int(wstride/2), :] = self.X
             self.X = new_X
             for i in range(Hout):
