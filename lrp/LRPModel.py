@@ -50,8 +50,8 @@ class LRPModel(tf.keras.Model):
                     r_layer = MaxPool(layer, output[from_layer_index], output[layer_index])
                 elif type(layer) is tf.keras.layers.GlobalAveragePooling2D:
                     r_layer = GlobalAvgPool(layer, output[from_layer_index])
-                # elif type(layer) is tf.keras.layers.BatchNormalization:
-                #     r_layer = BatchNormalization(layer, output[from_layer_index])
+                elif type(layer) is tf.keras.layers.BatchNormalization:
+                    r_layer = BatchNormalization(layer, output[from_layer_index])
                 else:
                     print("skip", layer.name)
                     layer_R[from_layer.name] = layer_R[layer.name]
